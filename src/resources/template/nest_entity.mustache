@@ -1,0 +1,20 @@
+import lombok.Data;
+
+/**
+* {{classComment}}
+*/
+@Data
+public class {{className}} implements Serializable {
+
+// 序列化
+private static final long serialVersionUID = 1L;
+
+{{#fieldList}}
+  {{#comment}}
+    /**
+    * {{comment}}
+    */
+  {{/comment}}
+  private {{javaType}} {{fieldName}};
+{{/fieldList}}
+}
