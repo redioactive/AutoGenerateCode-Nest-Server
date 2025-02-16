@@ -1,5 +1,5 @@
 import { Repository, DataSource } from 'typeorm';
-import { User } from '../models/user.entity';
+import { User } from '../models/entity/User';
 
 export const UserMapper = (
   dataSource: DataSource,

@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { UserMapper } from '../mappers/user.mapper';
-import { User } from '../models/user.entity';
+import { User } from '../models/entity/User';
 
 interface Request {
   user?:User;

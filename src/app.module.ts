@@ -5,7 +5,7 @@ import { AuthGuard } from './annotations/AuthGuard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { databaseConfig } from './config/database.config';
-import { User } from './models/user.entity';
+import { User } from './models/entity/User';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CorsConfig } from './config/CorsConfig';
 import { MustacheConfigurationConfig } from './config/MustacheConfigurationConfig';

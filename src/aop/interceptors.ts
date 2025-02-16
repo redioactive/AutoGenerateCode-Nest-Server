@@ -8,7 +8,7 @@ import {
 import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
 import { UserService } from '../services/user.service'; // 用户服务
-import { User } from '../models/user.entity';
+import { User } from '../models/entity/User';
 
 interface Request {
   user?:User;
