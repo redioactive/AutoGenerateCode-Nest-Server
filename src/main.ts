@@ -13,11 +13,10 @@ async function bootstrap() {
   //   setupSwagger(app);
   // }
   setupSwagger(app);
-
   //全局数据验证管道
   app.useGlobalFilters(new GlobalExceptionFilter()); //注册全局过滤器
   await app.listen(3000);
   console.log(`Application is running on:http://localhost:3000`);
 }
 
-bootstrap().then();
+bootstrap()
