@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Body, Query, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
+import { FindOptionsSelect } from 'typeorm';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FieldInfoService } from '../services/FieldInfoService';
 import { UserService } from '../services/UserService';
 import { FieldInfoAddRequest } from '../models/dto/FieldInfoAddRequest';
@@ -14,10 +16,9 @@ import { ReviewStatusEnum } from '../common/enums/ReviewStatusEnum';
 import { SqlBuilder } from '../common/utils/SqlBuilder';
 import { Field } from '../common/schema/TableSchema';
 import { CommonConstants } from '../constants/Common_Constant';
-import { FindOptionsSelect } from 'typeorm';
-import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('过场')
+
+@ApiTags('字段管理')
 @Controller('field_info')
 export class FieldInfoController {
   constructor(
@@ -89,6 +90,7 @@ export class FieldInfoController {
    * 创建字段
    * */
   @Post('add')
+  @ApiOperation({summary:'创建字段'})
   async addFieldInfo(
     @Body() fieldInfoAddDto: FieldInfoAddRequest,
     @Req() req: Request,
@@ -124,6 +126,7 @@ export class FieldInfoController {
    * 删除字段
    * */
   @Post('delete')
+  @ApiOperation({summary:'删除字段'})
   async deleteFieldInfo(
     @Body() deleteDto: DeleteDicDto,
     @Req() req: Request,
@@ -150,6 +153,7 @@ export class FieldInfoController {
    * */
   @Post('update')
   @UseGuards(AuthGuard, RolesGuard)
+  @ApiOperation({summary:'更新字段'})
   @Roles('admin')
   async updateFieldInfo(@Body() fieldInfoUpdateDto: FieldInfoUpdateRequest) {
     if (!fieldInfoUpdateDto || fieldInfoUpdateDto.id <= 0) {
@@ -172,6 +176,7 @@ export class FieldInfoController {
    * 根据id 获取字段信息
    * */
   @Get('get')
+  @ApiOperation({summary:'根据ID获取字段信息'})
   async getFieldInfoById(@Query('id') id: number) {
     if (id <= 0) {
       throw new BadRequestException('参数错误');
@@ -185,6 +190,7 @@ export class FieldInfoController {
    * */
   @Get('list')
   @UseGuards(AuthGuard, RolesGuard)
+  @ApiOperation({summary:'获取全部字段列表(仅管理员)'})
   @Roles('admin')
   async listFieldInfo(@Query() queryDto: FieldInfoQueryRequest) {
     const query = this.buildQuery(queryDto);
@@ -196,6 +202,7 @@ export class FieldInfoController {
    * 分页获取字段列表
    * */
   @Get('list/page')
+  @ApiOperation({summary:'分页获取字段列表'})
   async listFieldInfoByPage(
     @Query() queryDto: FieldInfoQueryRequest,
     @Req() req: Request,
@@ -214,6 +221,7 @@ export class FieldInfoController {
    * 获取当前用户可选的全部字段(只返回 id 和 name)
    * */
   @Get('my/list')
+  @ApiOperation({summary:'获取当前用户可选的全部字段'})
   async listMyFieldInfo(
     @Query() queryDto: FieldInfoQueryRequest,
     @Req() req: Request,
@@ -259,6 +267,7 @@ export class FieldInfoController {
    * 分页获取当前用户的可选字段列表
    * */
   @Get('my/list/page')
+  @ApiOperation({summary:'分页获取当前用户的可选字段列表'})
   async listMyFieldInfoByPage(
     @Query() queryDto: FieldInfoQueryRequest,
     @Req() req: Request,
@@ -283,6 +292,7 @@ export class FieldInfoController {
    * 分页获取当前用户创建的字段列表
    * */
   @Get('my/list/page')
+  @ApiOperation({summary:'分页获取当前用户创建的字段列表'})
   async listMyAddFieldInfoByPage(
     @Query() queryDto: FieldInfoQueryRequest,
     @Req() req: Request,
@@ -307,6 +317,7 @@ export class FieldInfoController {
    * 生成创建字段的SQL
    * */
   @Post('generate/sql')
+  @ApiOperation({summary:'生成创建字段的SQL'})
   async generateCreateSql(@Body('id') id: number) {
     if (id <= 0) {
       throw new BadRequestException('参数错误');

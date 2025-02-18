@@ -1,0 +1,124 @@
+import { Controller, Get, Post, Body, Query, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { ReportService } from '../services/ReportService';
+import { DictService } from '../services/DictService';
+import { UserService } from '../services/UserService';
+import { AuthGuard } from '../guards/AuthGuard';
+import { ReportAddRequest } from '../models/dto/ReportAddRequest';
+import { ReportUpdateRequest } from '../models/dto/ReportUpdateRequest';
+import { ReportQueryRequest } from '../models/dto/ReportQueryRequest';
+import { DeleteRequest } from '../models/dto/DeleteRequest';
+import { Report } from '../models/entity/Report';
+import { User } from '../models/entity/User';
+import { ReportStatusEnum } from '../models/enums/ReportStatusEnum';
+import { BaseResponse } from '../common/BaseResponse';
+import { ErrorCode } from '../common/ErrorCode';
+import { ResultUtils } from '../common/ResultUtils';
+import { BusinessException } from '../exceptions/BusinessException';
+import { QueryFailedError } from 'typeorm';
+
+@Controller('report')
+export class ReportController {
+  constructor(
+    private readonly reportService: ReportService,
+    private readonly dictService: DictService,
+    private readonly userService: UserService,
+  ) {}
+
+  /**
+   * 添加举报信息
+   * @param reportAddRequest 举报请求对象
+   * @param request HTTP请求对象
+   * @returns 举报ID
+   */
+  @Post('/add')
+  async addReport(@Body() reportAddRequest: ReportAddRequest, @Req() request): Promise<BaseResponse<number>> {
+    if (!reportAddRequest) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    const report = new Report();
+    Object.assign(report, reportAddRequest);
+    await this.reportService.validReport(report, true);
+    const loginUser: User = await this.userService.getLoginUser(request);
+    const dict = await this.dictService.getById(report.reportedId);
+    if (!dict) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR, '举报对象不存在');
+    }
+    report.reportedUserId = dict.userId;
+    report.userId = loginUser.id;
+    report.status = ReportStatusEnum.DEFAULT;
+    const savedReport = await this.reportService.save(report);
+    return ResultUtils.success(savedReport.id);
+  }
+
+  /**
+   * 删除举报信息
+   * @param deleteRequest 删除请求对象
+   * @param request HTTP请求对象
+   * @returns 是否删除成功
+   */
+  @Post('/delete')
+  async deleteReport(@Body() deleteRequest: DeleteRequest, @Req() request): Promise<BaseResponse<boolean>> {
+    if (!deleteRequest || deleteRequest.id <= 0) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    const user = await this.userService.getLoginUser(request);
+    const oldReport = await this.reportService.getById(deleteRequest.id);
+    if (!oldReport) {
+      throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+    }
+    if (oldReport.userId !== user.id && !(await this.userService.isAdmin(request))) {
+      throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+    }
+    await this.reportService.removeById(deleteRequest.id);
+    return ResultUtils.success(true);
+  }
+
+  /**
+   * 更新举报信息（仅管理员可用）
+   * @param reportUpdateRequest 举报更新请求对象
+   * @returns 是否更新成功
+   */
+  @Post('/update')
+  @UseGuards(AuthGuard)
+  async updateReport(@Body() reportUpdateRequest: ReportUpdateRequest): Promise<BaseResponse<boolean>> {
+    if (!reportUpdateRequest || reportUpdateRequest.id <= 0) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    const existingReport = await this.reportService.getById(reportUpdateRequest.id);
+    if (!existingReport) {
+      throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+    }
+    Object.assign(existingReport, reportUpdateRequest);
+    await this.reportService.validReport(existingReport, false);
+    await this.reportService.updateById(existingReport);
+    return ResultUtils.success(true);
+  }
+
+  /**
+   * 根据ID获取举报信息
+   * @param id 举报ID
+   * @returns 举报信息
+   */
+  @Get('/get')
+  async getReportById(@Query('id') id: number): Promise<BaseResponse<Report>> {
+    if (!id || id <= 0) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    const report = await this.reportService.getById(id);
+    return ResultUtils.success(report);
+  }
+
+  /**
+   * 分页获取举报信息列表
+   * @param query 举报查询请求对象
+   * @returns 分页举报信息列表
+   */
+  @Get('/list/page')
+  async listReportByPage(@Query() query: ReportQueryRequest): Promise<BaseResponse<{ items: Report[]; total: number }>> {
+    if (!query) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    }
+    const pagination = await this.reportService.page(query);
+    return ResultUtils.success(pagination);
+  }
+}

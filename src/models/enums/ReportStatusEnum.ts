@@ -6,6 +6,12 @@ export enum StatusEnum {
  * 获取所有枚举值
  * @returns number[]
  * */
-export const getReportStatusValues = ():number[]=> {
-  return Object.values(StatusEnum).filter(value => typeof value === 'number') as number[];
+export const ReportStatusEnum = {
+  // return Object.values(StatusEnum).filter(value => typeof value === 'number') as number[];
+  values:():number[] => {
+    return Object.values(StatusEnum).filter(value => typeof value === 'number') as number[];
+  },
+  DEFAULT:():number => {
+    return StatusEnum.DEFAULT;
+  }
 }
