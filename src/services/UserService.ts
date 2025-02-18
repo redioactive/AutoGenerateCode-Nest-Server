@@ -24,7 +24,7 @@ export class UserService {
    * @param request Express请求对象
    * @returns 当前登录用户或抛出 UnauthorizedException异常
    * */
-  async getLoginUser(request: Request):Promise<User> {
+  async getLoginUser(request: e.Request):Promise<User> {
     const user = request.user; //从请求中获取登录用户信息
     if(!user) {
       throw new UnauthorizedException('用户未登录');
