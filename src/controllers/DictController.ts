@@ -3,7 +3,7 @@ import { DictService } from '../services/DictService';
 import { CreateDicDto, UpdateDicDto, QueryDictDto, DeleteDicDto } from '../models/dto/DictDto';
 import { AuthGuard } from '../annotations/AuthGuard';
 import { AuthCheck } from '../annotations/AuthCheck';
-import { UserService } from '../services/user.service';
+import { UserService } from '../services/UserService';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { generateVO } from '../models/vo/GenerateVO';
 

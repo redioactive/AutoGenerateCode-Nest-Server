@@ -1,10 +1,11 @@
 import { IsInt, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
+import {FieldInfo} from '../entity/FieldInfo';
 
 /**
  * 更新字段信息请求 DTO
  */
-export class FieldInfoUpdateRequest {
+export class FieldInfoUpdateRequest implements Partial<FieldInfo> {
   /**
    * ID
    */
@@ -18,7 +19,6 @@ export class FieldInfoUpdateRequest {
   @IsOptional()
   @IsString()
   name?: string;
-
   /**
    * 字段名称
    */
@@ -39,6 +39,13 @@ export class FieldInfoUpdateRequest {
   @IsOptional()
   @IsInt()
   reviewStatus?: number;
+
+  /**
+   * 类型
+   * */
+  @IsOptional()
+  @IsString()
+  type?:string;
 
   /**
    * 审核信息

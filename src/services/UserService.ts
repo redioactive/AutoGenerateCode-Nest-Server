@@ -1,11 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException,NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { UserMapper } from '../mappers/user.mapper';
 import { User } from '../models/entity/User';
-
-interface Request {
-  user?:User;
-}
+import {Request} from 'express';
 
 @Injectable()
 export class UserService {
@@ -24,8 +21,9 @@ export class UserService {
    * @param request Express请求对象
    * @returns 当前登录用户或抛出 UnauthorizedException异常
    * */
-  async getLoginUser(request: e.Request):Promise<User> {
-    const user = request.user; //从请求中获取登录用户信息
+  async getLoginUser(request: Request):Promise<User> {
+    // const user = request.user as User //从请求中获取登录用户信息
+    const user = request.user;
     if(!user) {
       throw new UnauthorizedException('用户未登录');
     }
@@ -35,5 +33,14 @@ export class UserService {
       throw new UnauthorizedException('用户不存在')
     }
     return fullUser;
+  }
+
+  /**
+   * 判断用户是否为管理员
+   * @param user 要检查的用户
+   * @returns 用户是否为管理员
+   * */
+  isAdmin(user:User):boolean {
+    return user.role === 'admin';
   }
 }

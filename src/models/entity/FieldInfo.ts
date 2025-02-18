@@ -20,6 +20,12 @@ export class FieldInfo {
   name: string;
 
   /**
+   * 类型
+   * */
+  @Column()
+  type:string;
+
+  /**
    * 字段名称
    */
   @Column()
@@ -67,4 +73,15 @@ export class FieldInfo {
   @Column({ default: 0 }) // Assuming 0 means not deleted
   isDelete: number;
 
+  /**
+   * 默认值
+   * */
+  @Column({nullable:true})
+  defaultValue:string;
+
+  /**
+   * 是否可为空
+   * */
+  @Column({default:false})
+  isNullable:boolean;
 }

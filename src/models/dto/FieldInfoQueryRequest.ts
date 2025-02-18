@@ -48,4 +48,12 @@ export class FieldInfoQueryRequest extends PageRequestDto {
   @Type(() => Number)
   @IsPositive()
   userId?: number;
+  type?: boolean;
+  /**
+   * 页码 (分页查询时使用)
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsPositive()
+  page?: number;
 }

@@ -1,18 +1,8 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  UnauthorizedException,
-} from '@nestjs/common';
+import {Injectable,NestInterceptor,ExecutionContext,CallHandler,UnauthorizedException} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
-import { UserService } from '../services/user.service'; // 用户服务
-import { User } from '../models/entity/User';
-
-interface Request {
-  user?:User;
-}
+import { UserService } from '../services/UserService'; // 用户服务
+import {Request} from 'express';
 
 @Injectable()
 export class AuthInterceptor implements NestInterceptor {
@@ -33,7 +23,7 @@ export class AuthInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const request: Request = context.switchToHttp().getRequest();
+    const request: Request = context.switchToHttp().getRequest<Request>();
     const user = await this.userService.getLoginUser(request);
 
     if (!user) {
