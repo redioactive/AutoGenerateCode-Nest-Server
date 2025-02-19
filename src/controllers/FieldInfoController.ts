@@ -13,8 +13,8 @@ import { AuthGuard } from '../annotations/AuthGuard';
 import { RolesGuard } from '../common/guards/RolesGuard';
 import { Roles } from '../annotations/RolesDecorator';
 import { ReviewStatusEnum } from '../common/enums/ReviewStatusEnum';
-import { SqlBuilder } from '../common/utils/SqlBuilder';
-import { Field } from '../common/schema/TableSchema';
+import { SqlBuilder } from '../core/builder/SqlBuilder';
+import { Field } from '../core/schema/TableSchema';
 import { CommonConstants } from '../constants/Common_Constant';
 
 

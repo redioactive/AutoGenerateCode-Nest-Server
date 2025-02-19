@@ -5,11 +5,11 @@ import { AuthGuard } from './annotations/AuthGuard';
 import { AppController } from './app.controller';
 import { DictController } from './controllers/DictController';
 import { FieldInfoController } from './controllers/FieldInfoController';
-import {ReportController} from './controllers/ReportCtroller';
+import { ReportController } from './controllers/ReportController';
 import { DictService } from './services/DictService';
 import { AppService } from './app.service';
 import { UserService } from './services/UserService';
-import {ReportService} from './services/ReportService';
+import { ReportService } from './services/ReportService';
 import { FieldInfoService } from './services/FieldInfoService';
 import { databaseConfig } from './config/database.config';
 import { User } from './models/entity/User';
@@ -19,11 +19,11 @@ import { MustacheConfigurationConfig } from './config/MustacheConfigurationConfi
 import { LogInterceptor } from './aop/LoggingInterceptor';
 import { Dict } from './models/entity/Dict';
 import { FieldInfo } from './models/entity/FieldInfo';
-import {Report } from './models/entity/Report';
+import { Report } from './models/entity/Report';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Dict, FieldInfo,Report]), //注册实体
+    TypeOrmModule.forFeature([User, Dict, FieldInfo, Report]), //注册实体
     ConfigModule.forRoot({
       isGlobal: true, // 全局模块，无需在其他模块中再次导入
       envFilePath: '.env', // 指定 .env 文件路径
@@ -31,7 +31,7 @@ import {Report } from './models/entity/Report';
     //使用forRootAsync动态注入env配置文件
     TypeOrmModule.forRoot(databaseConfig),
   ],
-  controllers: [AppController, DictController, FieldInfoController,ReportController],
+  controllers: [AppController, DictController, FieldInfoController, ReportController],
   providers: [
     AppService,
     MustacheConfigurationConfig,
