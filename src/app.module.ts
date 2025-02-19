@@ -4,6 +4,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './annotations/AuthGuard';
 import { AppController } from './app.controller';
 import { DictController } from './controllers/DictController';
+import {SqlController} from './controllers/SqlController';
 import { FieldInfoController } from './controllers/FieldInfoController';
 import { ReportController } from './controllers/ReportController';
 import { DictService } from './services/DictService';
@@ -31,7 +32,7 @@ import { Report } from './models/entity/Report';
     //使用forRootAsync动态注入env配置文件
     TypeOrmModule.forRoot(databaseConfig),
   ],
-  controllers: [AppController, DictController, FieldInfoController, ReportController],
+  controllers: [AppController, DictController, FieldInfoController, ReportController,SqlController],
   providers: [
     AppService,
     MustacheConfigurationConfig,

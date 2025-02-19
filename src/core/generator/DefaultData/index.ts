@@ -11,7 +11,7 @@ export class DefaultDataGenerator implements DataGenerator {
     const list: string[] = new Array(rowNum);
 
     //主键采用递增策略
-    if (field.isPrimaryKey) {
+    if (field.isPrimaryKey?.() ?? false) {
       if (!mockParams?.trim) {
         mockParams = '1';
       }

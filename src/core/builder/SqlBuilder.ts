@@ -61,13 +61,16 @@ export class SqlBuilder {
     if (field.defaultValue) {
       sql += ` DEFAULT ${this.getValueStr(field, field.defaultValue)}`;
     }
-    sql += field.isNotNull() ? ' NOT NULL' : ' NULL';
+    sql += (field.isNotNull?.() ?? false) ? ' NOT NULL' : ' NULL';
+
     if (field.onUpdate) {
       sql += ` ON UPDATE ${field.onUpdate}`;
     }
-    if (field.isAutoIncrement()) sql += ' AUTO_INCREMENT';
+
+    if (field.isAutoIncrement?.() ?? false) sql += ' AUTO_INCREMENT';
     if (field.comment) sql += ` COMMENT '${field.comment}'`;
-    if (field.isPrimaryKey()) sql += ' PRIMARY KEY';
+    if (field.isPrimaryKey?.() ?? false) sql += ' PRIMARY KEY';
+
     return sql;
   }
 

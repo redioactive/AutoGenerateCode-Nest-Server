@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
+import { FieldTypeEnum } from '../model/enums/FieldType';
 
 /**
  * 表概要
@@ -78,23 +79,17 @@ export class Field {
    * 是否非空
    * @returns {boolean}
    */
-  isNotNull(): boolean {
-    return this.notNull;
-  }
+  isNotNull?:() => boolean;
 
   /**
    * 是否为主键
    * @returns {boolean}
    */
-  isPrimaryKey(): boolean {
-    return this.primaryKey;
-  }
+  isPrimaryKey?:() => boolean;
 
   /**
    * 是否自增
    * @returns {boolean}
    */
-  isAutoIncrement(): boolean {
-    return this.autoIncrement;
-  }
+  isAutoIncrement?:() => boolean;
 }

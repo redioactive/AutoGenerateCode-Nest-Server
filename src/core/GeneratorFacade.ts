@@ -17,7 +17,7 @@ export class GeneratorFacade {
    * @param moduleRef
    * @returns GenerateVO
    * */
-   public static  generateAll(tableSchema:TableSchema,moduleRef:ModuleRef):GenerateVO {
+   public static  generateAll(tableSchema:TableSchema,moduleRef?:ModuleRef):GenerateVO {
     //校验 Schema
     this.validSchema(tableSchema);
 
@@ -46,7 +46,7 @@ export class GeneratorFacade {
     const nestObjectCode = nestCodeBuilder.buildObjectCode(tableSchema,dataList);
 
     //生成Typescript 类型代码
-     const typescriptTypeCode = FrontendCodeBuilder.buildTypeScriptCodeStatic(moduleRef,tableSchema);
+     const typescriptTypeCode = FrontendCodeBuilder.buildTypeScriptCodeStatic(moduleRef!,tableSchema);
     //封装返回值
     return {
       tableSchema,

@@ -145,7 +145,7 @@ export class TableSchemaBuilder {
               autoIncrement: !!definition.auto_increment,
               mockType: MockTypeEnum.NONE, // 默认模拟类型
               mockParams: '',
-              onUpdate: definition.onUpdate || '',
+              onUpdate: definition.onUpdate || ''
             };
             fieldList.push(field);
           }
@@ -186,7 +186,18 @@ export class TableSchemaBuilder {
       }
       // 第一行作为表头
       const headerRow = dataList[0];
-      const fieldList: Field[] = headerRow.map((name: string) => ({
+      const fieldList: {
+        fieldName: string;
+        comment: string;
+        fieldType: FieldTypeEnum.TEXT;
+        defaultValue: string;
+        notNull: boolean;
+        primaryKey: boolean;
+        autoIncrement: boolean;
+        mockType: string;
+        mockParams: string;
+        onUpdate: string
+      }[] = headerRow.map((name: string) => ({
         fieldName: name,
         comment: name,
         fieldType: FieldTypeEnum.TEXT, // 默认类型为 TEXT
@@ -204,7 +215,7 @@ export class TableSchemaBuilder {
         for (let i = 0; i < fieldList.length; i++) {
           const value = secondRow[i];
           const fieldType = TableSchemaBuilder.getFieldTypeByValue(value);
-          fieldList[i].fieldType = fieldType;
+          fieldList[i].fieldType = <FieldTypeEnum.TEXT>fieldType;
         }
       }
       const tableSchema = new TableSchema();
@@ -279,6 +290,13 @@ export class TableSchemaBuilder {
    */
   private static getDefaultField(word: string): Field {
     return {
+      isAutoIncrement(): boolean {
+        return false;
+      }, isNotNull(): boolean {
+        return false;
+      }, isPrimaryKey(): boolean {
+        return false;
+      },
       fieldName: word,
       fieldType: FieldTypeEnum.TEXT,
       defaultValue: '',
@@ -288,7 +306,7 @@ export class TableSchemaBuilder {
       autoIncrement: false,
       mockType: '',
       mockParams: '',
-      onUpdate: '',
+      onUpdate: ''
     };
   }
 }
