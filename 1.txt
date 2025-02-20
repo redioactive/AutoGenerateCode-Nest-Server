@@ -1,266 +1,241 @@
-SQLController
+//UserController
 
 import {
   Controller,
+  Get,
   Post,
   Body,
-  UseInterceptors,
-  UploadedFile,
-  Res,
+  Query,
+  Req,
+  UseGuards,
+  BadRequestException,
+  HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
-import { Workbook } from 'exceljs';
+import { Request } from 'express';
+import { UserService } from '../services/user.service';
+import { UserRegisterRequest } from '../dto/user-register-request.dto';
+import { UserLoginRequest } from '../dto/user-login-request.dto';
+import { UserAddRequest } from '../dto/user-add-request.dto';
+import { DeleteRequest } from '../dto/delete-request.dto';
+import { UserUpdateRequest } from '../dto/user-update-request.dto';
+import { UserQueryRequest } from '../dto/user-query-request.dto';
+import { User } from '../entities/user.entity';
+import { UserVO } from '../vo/user.vo';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard } from '../guards/roles.guard';
+import { UserConstant } from '../constants/user.constant';
 
-import { BaseResponseDto } from '../common/base-response.dto'; // 自定义响应 DTO
-import { ResultUtils } from '../common/result-utils'; // 自定义返回结果工具
-import { GeneratorFacade } from '../core/generator-facade';
-import { GenerateVO } from '../core/model/vo/generate-vo';
-import { TableSchema } from '../core/schema/table-schema';
-import { TableSchemaBuilder } from '../core/schema/table-schema-builder';
-import { BusinessException } from '../exceptions/business-exception';
-import { ErrorCode } from '../common/error-code';
-import { GenerateByAutoRequest } from '../models/dto/generate-by-auto-request';
-import { GenerateBySqlRequest } from '../models/dto/generate-by-sql-request';
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
 
-@Controller('sql')
-export class SqlController {
-  /**
-   * 根据表结构生成所有数据
-   * @param tableSchema 表结构对象
-   * @returns 生成结果
-   */
-  @Post('generate/schema')
-  async generateBySchema(
-    @Body() tableSchema: TableSchema,
-  ): Promise<BaseResponseDto<GenerateVO>> {
-    const result = GeneratorFacade.generateAll(tableSchema);
-    return ResultUtils.success(result);
-  }
+  // region 登录相关
 
   /**
-   * 根据自动获取的内容生成表结构
-   * @param autoRequest 自动请求对象
-   * @returns 表结构
+   * 用户注册
    */
-  @Post('get/schema/auto')
-  async getSchemaByAuto(
-    @Body() autoRequest: GenerateByAutoRequest,
-  ): Promise<BaseResponseDto<TableSchema>> {
-    if (!autoRequest) {
-      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+  @Post('register')
+  async userRegister(
+    @Body() userRegisterRequest: UserRegisterRequest,
+  ): Promise<{ code: number; data: number }> {
+    if (!userRegisterRequest) {
+      throw new BadRequestException('参数错误');
     }
-    const tableSchema = TableSchemaBuilder.buildFromAuto(autoRequest.content);
-    return ResultUtils.success(tableSchema);
-  }
-
-  /**
-   * 根据 SQL 获取表结构
-   * @param sqlRequest SQL请求对象
-   * @returns 表结构
-   */
-  @Post('get/schema/sql')
-  async getSchemaBySql(
-    @Body() sqlRequest: GenerateBySqlRequest,
-  ): Promise<BaseResponseDto<TableSchema>> {
-    if (!sqlRequest) {
-      throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    const { userName, userAccount, userPassword, checkPassword } = userRegisterRequest;
+    if (!userAccount || !userPassword || !checkPassword) {
+      throw new BadRequestException('参数错误');
     }
-    const tableSchema = TableSchemaBuilder.buildFromSql(sqlRequest.sql);
-    return ResultUtils.success(tableSchema);
-  }
-
-  /**
-   * 根据上传的 Excel 文件获取表结构
-   * @param file 上传的 Excel 文件
-   * @returns 表结构
-   */
-  @Post('get/schema/excel')
-  @UseInterceptors(FileInterceptor('file'))
-  async getSchemaByExcel(
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<BaseResponseDto<TableSchema>> {
-    const tableSchema = TableSchemaBuilder.buildFromExcel(file);
-    return ResultUtils.success(tableSchema);
-  }
-
-  /**
-   * 下载模拟数据 Excel 文件
-   * @param generateVO 生成结果对象，包含表结构和数据
-   * @param response Express 响应对象
-   */
-  @Post('download/data/excel')
-  async downloadDataExcel(
-    @Body() generateVO: GenerateVO,
-    @Res() response: Response,
-  ): Promise<void> {
-    const tableSchema: TableSchema = generateVO.tableSchema;
-    const tableName: string = tableSchema.tableName;
-    try {
-      // 设置响应头，防止中文乱码
-      response.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      );
-      response.setHeader('Content-Encoding', 'utf-8');
-      // encodeURIComponent 可防止中文乱码
-      const fileName = encodeURIComponent(`${tableName}表数据`).replace(/\+/g, '%20');
-      response.setHeader(
-        'Content-Disposition',
-        `attachment;filename*=utf-8''${fileName}.xlsx`,
-      );
-      response.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-
-      // 使用 exceljs 创建 Excel 文件
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet(`${tableName}表`);
-
-      // 设置表头
-      // 假设 tableSchema.fieldList 是一个包含 fieldName 属性的数组
-      const columns = tableSchema.fieldList.map((field) => ({
-        header: field.fieldName,
-        key: field.fieldName,
-        width: 20,
-      }));
-      worksheet.columns = columns;
-
-      // 添加数据行
-      // 假设 generateVO.dataList 为一个数组，每一项是一个对象，键与字段名对应
-      generateVO.dataList.forEach((data) => {
-        worksheet.addRow(data);
-      });
-
-      // 将工作簿写入响应流
-      await workbook.xlsx.write(response);
-      response.end();
-    } catch (error) {
-      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      response.send('下载失败');
-      throw new BusinessException(ErrorCode.SYSTEM_ERROR, '下载失败');
-    }
-  }
-}
-
-
-//sqlBuilder
-import { Injectable, Logger } from '@nestjs/common';
-import { SQLDialect } from './sql/SQLDialect';
-import { SQLDialectFactory } from './sql/SQLDialectFactory';
-import { MySQLDialect } from './sql/MySQLDialect';
-import { TableSchema, Field } from './schema/TableSchema';
-import { FieldTypeEnum } from './enums/FieldTypeEnum';
-import { MockTypeEnum } from './enums/MockTypeEnum';
-
-@Injectable()
-export class SqlBuilder {
-  private readonly logger = new Logger(SqlBuilder.name);
-  private sqlDialect: SQLDialect;
-
-  constructor() {
-    this.sqlDialect = SQLDialectFactory.getDialect(MySQLDialect);
-  }
-
-  setSqlDialect(sqlDialect: SQLDialect) {
-    this.sqlDialect = sqlDialect;
-  }
-
-  /**
-   * 生成建表 SQL
-   */
-  buildCreateTableSql(tableSchema: TableSchema): string {
-    const template = `%s\nCREATE TABLE IF NOT EXISTS %s (\n%s\n) %s;`;
-
-    let tableName = this.sqlDialect.wrapTableName(tableSchema.tableName);
-    if (tableSchema.dbName) {
-      tableName = `${tableSchema.dbName}.${tableName}`;
-    }
-
-    const tableComment = tableSchema.tableComment || tableName;
-    const tablePrefixComment = `-- ${tableComment}`;
-    const tableSuffixComment = `COMMENT '${tableComment}'`;
-
-    const fieldDefinitions = tableSchema.fieldList
-      .map((field) => this.buildCreateFieldSql(field))
-      .join(',\n');
-
-    const result = template
-      .replace('%s', tablePrefixComment)
-      .replace('%s', tableName)
-      .replace('%s', fieldDefinitions)
-      .replace('%s', tableSuffixComment);
-
-    this.logger.log(`Generated SQL: ${result}`);
-    return result;
-  }
-
-  /**
-   * 生成字段定义 SQL
-   */
-  buildCreateFieldSql(field: Field): string {
-    if (!field) throw new Error('Invalid field parameter');
-
-    const fieldName = this.sqlDialect.wrapFieldName(field.fieldName);
-    let sql = `${fieldName} ${field.fieldType}`;
-
-    if (field.defaultValue) {
-      sql += ` DEFAULT ${this.getValueStr(field, field.defaultValue)}`;
-    }
-    sql += field.isNotNull ? ' NOT NULL' : ' NULL';
-    if (field.isAutoIncrement) sql += ' AUTO_INCREMENT';
-    if (field.onUpdate) sql += ` ON UPDATE ${field.onUpdate}`;
-    if (field.comment) sql += ` COMMENT '${field.comment}'`;
-    if (field.isPrimaryKey) sql += ' PRIMARY KEY';
-
-    return sql;
-  }
-
-  /**
-   * 生成插入 SQL
-   */
-  buildInsertSql(tableSchema: TableSchema, dataList: Record<string, any>[]): string {
-    const template = `INSERT INTO %s (%s) VALUES (%s);`;
-
-    let tableName = this.sqlDialect.wrapTableName(tableSchema.tableName);
-    if (tableSchema.dbName) {
-      tableName = `${tableSchema.dbName}.${tableName}`;
-    }
-
-    const fieldList = tableSchema.fieldList.filter(
-      (field) => MockTypeEnum[field.mockType] !== MockTypeEnum.NONE,
+    const result = await this.userService.userRegister(
+      userName,
+      userAccount,
+      userPassword,
+      checkPassword,
+      UserConstant.DEFAULT_ROLE,
     );
-
-    return dataList
-      .map((data) => {
-        const columns = fieldList.map((field) => this.sqlDialect.wrapFieldName(field.fieldName)).join(', ');
-        const values = fieldList.map((field) => this.getValueStr(field, data[field.fieldName])).join(', ');
-        return template.replace('%s', tableName).replace('%s', columns).replace('%s', values);
-      })
-      .join('\n');
+    return { code: 0, data: result };
   }
 
   /**
-   * 处理字段值格式
+   * 用户登录
    */
-  private getValueStr(field: Field, value: any): string {
-    if (!field || value === undefined || value === null) {
-      return "''";
+  @Post('login')
+  async userLogin(
+    @Body() userLoginRequest: UserLoginRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: User }> {
+    if (!userLoginRequest) {
+      throw new BadRequestException('参数错误');
     }
-
-    const fieldType = FieldTypeEnum[field.fieldType] || FieldTypeEnum.TEXT;
-    switch (fieldType) {
-      case FieldTypeEnum.DATETIME:
-      case FieldTypeEnum.TIMESTAMP:
-        return value.toUpperCase() === 'CURRENT_TIMESTAMP' ? value : `'${value}'`;
-      case FieldTypeEnum.DATE:
-      case FieldTypeEnum.TIME:
-      case FieldTypeEnum.CHAR:
-      case FieldTypeEnum.VARCHAR:
-      case FieldTypeEnum.TEXT:
-      case FieldTypeEnum.BLOB:
-        return `'${value}'`;
-      default:
-        return `${value}`;
+    const { userAccount, userPassword } = userLoginRequest;
+    if (!userAccount || !userPassword) {
+      throw new BadRequestException('参数错误');
     }
+    const user = await this.userService.userLogin(userAccount, userPassword, req);
+    return { code: 0, data: user };
   }
+
+  /**
+   * 用户注销
+   */
+  @Post('logout')
+  async userLogout(@Req() req: Request): Promise<{ code: number; data: boolean }> {
+    if (!req) {
+      throw new BadRequestException('参数错误');
+    }
+    const result = await this.userService.userLogout(req);
+    return { code: 0, data: result };
+  }
+
+  /**
+   * 获取当前登录用户
+   */
+  @Get('get/login')
+  async getLoginUser(@Req() req: Request): Promise<{ code: number; data: UserVO }> {
+    const user = await this.userService.getLoginUser(req);
+    const userVO = new UserVO();
+    Object.assign(userVO, user);
+    return { code: 0, data: userVO };
+  }
+
+  // endregion
+
+  // region 增删改查
+
+  /**
+   * 创建用户 (仅管理员)
+   */
+  @Post('add')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async addUser(
+    @Body() userAddRequest: UserAddRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: number }> {
+    if (!userAddRequest) {
+      throw new BadRequestException('参数错误');
+    }
+    const user = new User();
+    Object.assign(user, userAddRequest);
+    const result = await this.userService.save(user);
+    if (!result) {
+      throw new HttpException('操作失败', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return { code: 0, data: user.id };
+  }
+
+  /**
+   * 删除用户 (仅管理员)
+   */
+  @Post('delete')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async deleteUser(
+    @Body() deleteRequest: DeleteRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: boolean }> {
+    if (!deleteRequest || deleteRequest.id <= 0) {
+      throw new BadRequestException('参数错误');
+    }
+    const result = await this.userService.removeById(deleteRequest.id);
+    return { code: 0, data: result };
+  }
+
+  /**
+   * 更新用户 (仅管理员)
+   */
+  @Post('update')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async updateUser(
+    @Body() userUpdateRequest: UserUpdateRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: boolean }> {
+    if (!userUpdateRequest || !userUpdateRequest.id) {
+      throw new BadRequestException('参数错误');
+    }
+    const user = new User();
+    Object.assign(user, userUpdateRequest);
+    const result = await this.userService.updateById(user);
+    return { code: 0, data: result };
+  }
+
+  /**
+   * 根据 id 获取用户 (仅管理员)
+   */
+  @Get('get')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async getUserById(
+    @Query('id') id: number,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: UserVO }> {
+    if (id <= 0) {
+      throw new BadRequestException('参数错误');
+    }
+    const user = await this.userService.getById(id);
+    const userVO = new UserVO();
+    Object.assign(userVO, user);
+    return { code: 0, data: userVO };
+  }
+
+  /**
+   * 获取用户列表 (仅管理员)
+   */
+  @Get('list')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async listUser(
+    @Query() userQueryRequest: UserQueryRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: UserVO[] }> {
+    const userQuery = new User();
+    if (userQueryRequest) {
+      Object.assign(userQuery, userQueryRequest);
+    }
+    // 此处可根据实际需要实现类似 MyBatis QueryWrapper 的功能
+    const userList = await this.userService.list(userQuery);
+    const userVOList = userList.map((user) => {
+      const userVO = new UserVO();
+      Object.assign(userVO, user);
+      return userVO;
+    });
+    return { code: 0, data: userVOList };
+  }
+
+  /**
+   * 分页获取用户列表 (仅管理员)
+   */
+  @Get('list/page')
+  @UseGuards(RolesGuard)
+  @Roles(UserConstant.ADMIN_ROLE)
+  async listUserByPage(
+    @Query() userQueryRequest: UserQueryRequest,
+    @Req() req: Request,
+  ): Promise<{ code: number; data: any }> {
+    let current = 1;
+    let size = 10;
+    const userQuery = new User();
+    if (userQueryRequest) {
+      Object.assign(userQuery, userQueryRequest);
+      current = userQueryRequest.current || 1;
+      size = userQueryRequest.pageSize || 10;
+    }
+    // 假设 userService.page 返回形如 { current, size, total, records } 的分页对象
+    const userPage = await this.userService.page(userQuery, current, size);
+    const userVOList = userPage.records.map((user) => {
+      const userVO = new UserVO();
+      Object.assign(userVO, user);
+      return userVO;
+    });
+    const userVOPage = {
+      current: userPage.current,
+      size: userPage.size,
+      total: userPage.total,
+      records: userVOList,
+    };
+    return { code: 0, data: userVOPage };
+  }
+
+  // endregion
 }

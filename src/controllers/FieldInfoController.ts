@@ -12,7 +12,7 @@ import { DeleteDicDto } from '../models/dto/DictDto';
 import { AuthGuard } from '../annotations/AuthGuard';
 import { RolesGuard } from '../common/guards/RolesGuard';
 import { Roles } from '../annotations/RolesDecorator';
-import { ReviewStatusEnum } from '../common/enums/ReviewStatusEnum';
+import {ReviewStatusEnum} from '../models/enums/ReviewStatusEnum';
 import { SqlBuilder } from '../core/builder/SqlBuilder';
 import { Field } from '../core/schema/TableSchema';
 import { CommonConstants } from '../constants/Common_Constant';

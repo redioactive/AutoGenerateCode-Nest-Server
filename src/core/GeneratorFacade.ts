@@ -63,7 +63,7 @@ export class GeneratorFacade {
    * 验证Schema
    * @param tableSchema 表结构
    * */
-  private static validSchema(tableSchema:TableSchema):void {
+  public static validSchema(tableSchema:TableSchema):void {
     if(!tableSchema) {
       throw new SchemaException('数据为空');
     }
