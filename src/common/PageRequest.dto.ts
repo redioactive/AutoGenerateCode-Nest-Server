@@ -1,6 +1,6 @@
 import {ApiProperty} from '@nestjs/swagger'
-import {IsOptional,IsString,IsNumber,Min} from 'class-validator'
-import {Transform} from 'class-transformer'
+import { IsOptional, IsString, IsNumber, Min, IsInt } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import {CommonConstants} from '../constants/Common_Constant';
 
 /**
@@ -29,4 +29,13 @@ export class PageRequestDto {
   @IsOptional()
   @IsString()
   sortOrder:string = CommonConstants.SORT_ORDER_ASC;
+
+  /**
+   * 每页数量（默认10条）
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  size?: number = 10;
 }

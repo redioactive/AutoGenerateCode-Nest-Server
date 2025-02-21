@@ -21,6 +21,10 @@ import { LogInterceptor } from './aop/LoggingInterceptor';
 import { Dict } from './models/entity/Dict';
 import { FieldInfo } from './models/entity/FieldInfo';
 import { Report } from './models/entity/Report';
+import {JwtModule,JwtService} from "@nestjs/jwt";
+import {ConfigService} from '@nestjs/config';
+import {JwtStrategy} from "./config/JwtConfig";
+import {UserController} from './controllers/UserController';
 
 @Module({
   imports: [
@@ -29,10 +33,18 @@ import { Report } from './models/entity/Report';
       isGlobal: true, // 全局模块，无需在其他模块中再次导入
       envFilePath: '.env', // 指定 .env 文件路径
     }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1h' },
+      }),
+    }),
     //使用forRootAsync动态注入env配置文件
     TypeOrmModule.forRoot(databaseConfig),
   ],
-  controllers: [AppController, DictController, FieldInfoController, ReportController,SqlController],
+  controllers: [AppController, DictController, FieldInfoController, ReportController,SqlController,UserController],
   providers: [
     AppService,
     MustacheConfigurationConfig,
@@ -40,6 +52,7 @@ import { Report } from './models/entity/Report';
     UserService,
     FieldInfoService,
     ReportService,
+      JwtStrategy,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
@@ -49,7 +62,7 @@ import { Report } from './models/entity/Report';
       useClass: LogInterceptor,
     },
   ],
-  exports: [MustacheConfigurationConfig, UserService], //导出以便其他模块使用
+  exports: [MustacheConfigurationConfig, UserService,JwtModule], //导出以便其他模块使用
 })
 export class AppModule {
   //处理跨域
