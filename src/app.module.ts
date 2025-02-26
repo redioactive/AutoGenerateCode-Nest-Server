@@ -1,4 +1,4 @@
-import {Module, MiddlewareConsumer, RequestMethod} from '@nestjs/common';
+import {Module} from '@nestjs/common';
 import {ConfigModule} from '@nestjs/config';
 import {APP_GUARD, APP_INTERCEPTOR} from '@nestjs/core';
 import {AuthGuard} from './annotations/AuthGuard';
@@ -15,7 +15,6 @@ import {FieldInfoService} from './services/FieldInfoService';
 import {databaseConfig} from './config/database.config';
 import {User} from './models/entity/User';
 import {TypeOrmModule} from '@nestjs/typeorm';
-import {CorsConfig} from './config/CorsConfig';
 import {MustacheConfigurationConfig} from './config/MustacheConfigurationConfig';
 import {LogInterceptor} from './aop/LoggingInterceptor';
 import {Dict} from './models/entity/Dict';

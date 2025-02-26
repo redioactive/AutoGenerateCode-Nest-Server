@@ -10,14 +10,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT_SECRET'),
+            secretOrKey: 'JWT_SECRET',
         });
     }
 
     async validate(payload: any) {
+        console.log('JwtStrategy validate payload:', payload);
         if (!payload) {
             throw new UnauthorizedException('无效的 Token');
         }
-        return { id: payload.userId, userAccount: payload.userAccount };
+        // return { id: payload.userId, userAccount: payload.userAccount,role:payload.role };
+        return {
+            id:payload.userId,
+            userAccount:payload.userAccount,
+            role:payload.role
+        };
     }
 }

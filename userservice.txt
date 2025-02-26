@@ -1,11 +1,11 @@
-import {Injectable, UnauthorizedException, NotFoundException, BadRequestException} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {DataSource, Like, Repository} from 'typeorm';
 import {QueryDictDto} from "../models/dto/UserQueryDict";
 import {User} from '../models/entity/User';
 import {UserMapper} from "../mappers/user.mapper";
 import {Request} from 'express';
 import {JwtService} from '@nestjs/jwt';
-import {scryptSync, randomBytes, timingSafeEqual} from 'crypto';
+import {randomBytes, scryptSync, timingSafeEqual} from 'crypto';
 import {InjectRepository} from '@nestjs/typeorm';
 
 /**
@@ -15,7 +15,8 @@ import {InjectRepository} from '@nestjs/typeorm';
  */
 function hashPassword(password: string): string {
     const salt = randomBytes(16).toString('hex');
-    const hashedBuffer = scryptSync(password, salt, 64);
+    //将salt 转换为 Buffer，使用hex编码
+    const hashedBuffer = scryptSync(password,Buffer.from(salt,'hex'),64)
     return `${salt}:${hashedBuffer.toString('hex')}`;
 }
 
@@ -27,7 +28,10 @@ function hashPassword(password: string): string {
  */
 function verifyPassword(password: string, hash: string): boolean {
     const [salt, key] = hash.split(':');
-    const hashedBuffer = scryptSync(password, salt, 64);
+    console.log('Salt from DB:',salt);
+    console.log('Key from DB:',key)
+    const hashedBuffer = scryptSync(password,Buffer.from(salt,'hex'),64)
+    console.log('Generated hash:',hashedBuffer.toString('hex'));
     const keyBuffer = Buffer.from(key, 'hex');
     return timingSafeEqual(hashedBuffer, keyBuffer);
 }
@@ -125,31 +129,40 @@ export class UserService {
         userPassword: string,
     ): Promise<{ user: User; accessToken: string }> {
         if (!userAccount || !userPassword) {
-            throw new BadRequestException('参数错误');
+            throw new BadRequestException('账号或密码错误');
         }
 
         const userRepository = UserMapper(this.dataSource);
-        const user = await userRepository.findOne({
-            where: {userAccount},
-            select: ['id', 'userAccount', 'userPassword', 'role'],
-        });
+        // const user = await userRepository.findOne({
+        //     where: {userAccount},
+        //     select: ['id', 'userAccount', 'userPassword', 'role'],
+        // });
+        console.log('开始查询')
+        const user = await userRepository
+            .createQueryBuilder('user')
+            .select(['user.id', 'user.userAccount', 'user.userPassword', 'user.role'])
+            .where('user.userAccount = userAccount', { userAccount })
+            .getOne();
+
+        console.log('数据库查询结果:', user);
         if (!user) {
             throw new UnauthorizedException('用户不存在');
         }
 
         const passwordValid = verifyPassword(userPassword, user.userPassword);
+        console.log('password验证失败', passwordValid);
         if (!passwordValid) {
-            throw new UnauthorizedException('密码错误');
+            throw new UnauthorizedException('密码验证失败');
         }
 
         // 生成JWT令牌
         const payload = {
-            id: user.id,
+            sub: user.id,
             userAccount: user.userAccount,
             role: user.role,
         };
         const accessToken = this.jwtService.sign(payload);
-
+        console.log('生成令牌成功',accessToken)
         // 返回用户信息（注意排除敏感信息）和令牌
         const {userPassword: _, ...safeUser} = user;
         return {
@@ -227,9 +240,7 @@ export class UserService {
         if (!user || !user.email || !user.name) {
             throw new BadRequestException('用户信息不完整');
         }
-
-        const savedUser = await this.userRepository.save(user);
-        return savedUser;
+        return await this.userRepository.save(user);
     }
 
     /**
