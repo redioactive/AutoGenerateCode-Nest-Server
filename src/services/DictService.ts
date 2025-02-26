@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {Injectable, NotFoundException, ForbiddenException, UnauthorizedException} from '@nestjs/common';
 import { CreateDicDto, UpdateDicDto, QueryDictDto } from '../models/dto/DictDto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,7 +10,6 @@ import { generateVO } from '../models/vo/GenerateVO';
 export class DictService {
   constructor(@InjectRepository(Dict) private readonly dictRepository: Repository<Dict>) {
   }
-
   /**
    * 校验并处理
    * @param dict 词条对象

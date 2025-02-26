@@ -1,5 +1,8 @@
 import {TypeOrmModuleOptions} from '@nestjs/typeorm';
 import {User} from '../models/entity/User'
+import {Dict} from "../models/entity/Dict";
+import {FieldInfo} from "../models/entity/FieldInfo";
+import {Report} from "../models/entity/Report";
 
 export const databaseConfig:TypeOrmModuleOptions = {
   type: 'mysql',
@@ -8,7 +11,7 @@ export const databaseConfig:TypeOrmModuleOptions = {
   username: 'root',
   password: '123456',
   database: 'sqldev',
-  entities: [User],
+  entities: [User,Dict,FieldInfo,Report],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: true, // 禁用自动同步
   migrationsRun: true, // 每次启动时运行 migrations

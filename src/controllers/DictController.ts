@@ -6,6 +6,8 @@ import { AuthCheck } from '../annotations/AuthCheck';
 import { UserService } from '../services/UserService';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { generateVO } from '../models/vo/GenerateVO';
+import {JwtAuthGuard} from "../config/JwtAuthGuards";
+
 
 @ApiTags('词条管理')
 @Controller('dict')
@@ -17,7 +19,7 @@ export class DictController {
   @Post('add')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '创建词条' })
-  async addDict(@Body() createDictDto: CreateDicDto, @Req() req: any) {
+  async addDict(@Body() createDictDto: CreateDicDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
     return await this.dictService.addDict(createDictDto, user.id);
   }
@@ -26,7 +28,7 @@ export class DictController {
   @Post('delete')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '删除词条' })
-  async deleteDict(@Body() deleteRequestDto: DeleteDicDto, @Req() req: any) {
+  async deleteDict(@Body() deleteRequestDto: DeleteDicDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
     return await this.dictService.deleteDict(deleteRequestDto.id, user);
   }
@@ -51,21 +53,15 @@ export class DictController {
   @Get('list/page')
   @ApiOperation({ summary: '分页获取词条列表' })
   async listDictByPage(@Query() queryDictDto: QueryDictDto) {
-    if (!this.dictService.listDictByPage) {
-      throw new Error('listDictByPage 方法未定义，请在 DictService 中实现');
-    }
     return await this.dictService.listDictByPage(queryDictDto);
   }
 
   /** 获取当前用户可用的词条 */
   @Get('my/list')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '获取当前用户可用的词条' })
-  async listMyDict(@Query() queryDictDto: QueryDictDto, @Req() req: any) {
+  async listMyDict(@Query() queryDictDto: QueryDictDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
-    if (!this.dictService.listMyDictByPage) {
-      throw new Error('listMyDict 方法未定义，请在 DictService 中实现');
-    }
     return await this.dictService.listMyDictByPage(queryDictDto, user.id);
   }
 
@@ -73,11 +69,8 @@ export class DictController {
   @Get('my/list/page')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '分页获取当前用户的词条' })
-  async listMyDictByPage(@Query() queryDictDto: QueryDictDto, @Req() req: any) {
+  async listMyDictByPage(@Query() queryDictDto: QueryDictDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
-    if (!this.dictService.listMyDictByPage) {
-      throw new Error('listMyDictByPage 方法未定义，请在 DictService 中实现');
-    }
     return await this.dictService.listMyDictByPage(queryDictDto, user.id);
   }
 
