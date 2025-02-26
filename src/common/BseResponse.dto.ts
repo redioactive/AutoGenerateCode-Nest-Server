@@ -26,7 +26,7 @@ export class BaseResponseDto<T> {
   })
   @IsString()
   @IsOptional()
-  message:string;
+  message?:string;
 
   constructor(code: number, data: any = null, message: string = '') {
     this.code = code;

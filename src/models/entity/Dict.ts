@@ -43,7 +43,7 @@ export class Dict {
   /**
    * 创建用户 id
    */
-  @Column({ type: 'bigint' })
+  @Column({ type: 'bigint',name:'user_id' })
   userId: number;
 
   /**

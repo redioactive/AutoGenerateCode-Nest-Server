@@ -5,7 +5,7 @@ import { PageRequestDto } from '../../common/PageRequest.dto';
 /**
  * 查询请求 DTO
  */
-export class DictQueryRequest extends PageRequestDto {
+export class DictQueryDto extends PageRequestDto {
   /**
    * 名称
    */

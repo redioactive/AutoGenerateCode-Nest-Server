@@ -62,10 +62,6 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  //sub 用于校验 Jwt
-  @Column()
-  sub:number;
-
   // 用户姓名
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
