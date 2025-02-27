@@ -3,9 +3,16 @@ import { Type } from 'class-transformer';
 import { PageRequestDto } from '../../common/PageRequest.dto';
 
 /**
- * 查询请求 DTO
+ * 通用查找 让他支持泛型
  */
 export class DictQueryDto extends PageRequestDto {
+  /**
+   * 创建用户 id
+   */
+  @IsOptional()
+  @IsPositive()
+  @Type(() => Number)
+  userId?: number;
   /**
    * 名称
    */
@@ -27,11 +34,4 @@ export class DictQueryDto extends PageRequestDto {
   @IsInt()
   reviewStatus?: number;
 
-  /**
-   * 创建用户 id
-   */
-  @IsOptional()
-  @IsPositive()
-  @Type(() => Number)
-  userId?: number;
 }

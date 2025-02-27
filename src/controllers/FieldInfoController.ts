@@ -9,13 +9,13 @@ import { FieldInfo } from '../models/entity/FieldInfo';
 import { FieldInfoUpdateRequest } from '../models/dto/FieldInfoUpdateRequest';
 import { FieldInfoQueryRequest } from '../models/dto/FieldInfoQueryRequest';
 import { DeleteDicDto } from '../models/dto/DictDto';
-import { AuthGuard } from '../annotations/AuthGuard';
 import { RolesGuard } from '../common/guards/RolesGuard';
 import { Roles } from '../annotations/RolesDecorator';
 import {ReviewStatusEnum} from '../models/enums/ReviewStatusEnum';
 import { SqlBuilder } from '../core/builder/SqlBuilder';
 import { Field } from '../core/schema/TableSchema';
 import { CommonConstants } from '../constants/Common_Constant';
+import {JwtAuthGuard} from "../config/JwtAuthGuards";
 
 
 @ApiTags('字段管理')
@@ -152,7 +152,7 @@ export class FieldInfoController {
    * 更新字段(仅管理员可操作)
    * */
   @Post('update')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({summary:'更新字段'})
   @Roles('admin')
   async updateFieldInfo(@Body() fieldInfoUpdateDto: FieldInfoUpdateRequest) {
@@ -189,7 +189,7 @@ export class FieldInfoController {
    * 获取全部字段列表 (仅管理员)
    * */
   @Get('list')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({summary:'获取全部字段列表(仅管理员)'})
   @Roles('admin')
   async listFieldInfo(@Query() queryDto: FieldInfoQueryRequest) {

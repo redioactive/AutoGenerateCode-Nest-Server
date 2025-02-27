@@ -1,18 +1,23 @@
 import {Controller, Get, Post, Body, Query, Req, UseGuards, BadRequestException} from '@nestjs/common';
 import { DictService } from '../services/DictService';
 import { CreateDicDto, UpdateDicDto, QueryDictDto, DeleteDicDto } from '../models/dto/DictDto';
-import { AuthGuard } from '../annotations/AuthGuard';
-import { AuthCheck } from '../annotations/AuthCheck';
 import { UserService } from '../services/UserService';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { generateVO } from '../models/vo/GenerateVO';
-import {JwtAuthGuard} from "../config/JwtAuthGuards";
+import {ErrorCode} from "../common/ErrorCode";
 import {DictQueryDto} from '../models/dto/DictQueryDto';
-import {BaseResponseDto} from "../common/BseResponse.dto";
+import {BaseResponse} from "../common/BseResponse.dto";
 import {ReviewStatusEnum} from "../models/enums/ReviewStatusEnum";
 import {Dict} from "../models/entity/Dict";
 import {Roles} from "../annotations/RolesDecorator";
 import {RolesGuard} from "../common/guards/RolesGuard";
+import {BusinessException} from "../exceptions/BusinessException";
+import {ResultUtilsDto} from "../common/ResultUtils.dto";
+import {Page} from "../types/page";
+import {User} from "../models/entity/User";
+import {Request} from "express";
+import {FindOptionsWhere} from "typeorm";
+import {JwtAuthGuard} from "../config/JwtAuthGuards";
 
 @ApiTags('词条管理')
 @Controller('dict')
@@ -23,7 +28,7 @@ export class DictController {
 
   /**创建词条*/
   @Post('add')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '创建词条' })
   async addDict(@Body() createDictDto: CreateDicDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
@@ -32,7 +37,7 @@ export class DictController {
 
   /**删除词条*/
   @Post('delete')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '删除词条' })
   async deleteDict(@Body() deleteRequestDto: DeleteDicDto, @Req() req) {
     const user = await this.userService.getLoginUser(req);
@@ -41,7 +46,7 @@ export class DictController {
 
   /**更新词条(仅管理员)*/
   @Post('update')
-  @AuthCheck('admin')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '更新词条' })
   async updateDict(@Body() updateDictDto: UpdateDicDto) {
     return await this.dictService.updateDict(updateDictDto);
@@ -49,34 +54,41 @@ export class DictController {
 
   /**获取词条列表(管理员权限)*/
   @Get('my/list')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({summary:'获取词条列表（仅管理员可使用）'})
-  async listDict(@Query() dictQueryDto:DictQueryDto):Promise<BaseResponseDto<Dict[]>> {
-    if(!dictQueryDto) {
-      throw new BadRequestException('获取账号失败')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({summary:'获取当前用户创建的词条（仅管理员可查看所有词条）'})
+  async listDict(@Query() dictQuery:DictQueryDto,@Req() req:Request):Promise<BaseResponse<Dict[]>> {
+    if(!dictQuery) {
+      throw new BadRequestException('获取词条失败')
     }
-    //构造查询条件
-    const queryOptions = this.dictService.getQueryWrapper(dictQueryDto);
-    const dictList = await this.dictService.list(queryOptions);
-    return {message: "", code:0,data:dictList}
+    //获取当前用户信息
+    const user = req.user as User;
+
+    //判断是否为管理员
+    const isAdmin = user.role.indexOf('admin')
+
+    //查询条件
+    let where:any =  this.dictService.getQueryWrapper(dictQuery)
+
+    if(!isAdmin) {
+      where.userId = user.id
+    }
+    const dictList = await this.dictService.list(where);
+    return {message:'',code:0,data:dictList};
   }
 
   /** 分页获取词条列表 */
   @Get('list/page')
   @ApiOperation({ summary: '分页获取词条列表' })
-  async listDictByPage(@Query() queryDictDto: QueryDictDto) {
-    return await this.dictService.listDictByPage(queryDictDto);
+  async listDictByPage(@Query() dictQueryPage:DictQueryDto):Promise<BaseResponse<Page<Dict>>> {
+    const {current,pageSize} = dictQueryPage;
+    if(pageSize > 20) {
+      throw new BusinessException(ErrorCode.PARAMS_ERROR.code)
+    }
+    const dictPage = await this.dictService.page({current,pageSize},dictQueryPage)
+    return ResultUtilsDto.success(dictPage)
   }
 
   /** 分页获取当前用户的词条 */
-  @Get('my/list/page')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '分页获取当前用户的词条' })
-  async listMyDictByPage(@Query() queryDictDto: QueryDictDto, @Req() req) {
-    const user = await this.userService.getLoginUser(req);
-    return await this.dictService.listMyDictByPage(queryDictDto, user.id);
-  }
 
   /**生成SQL*/
   @Post('generate/sql')

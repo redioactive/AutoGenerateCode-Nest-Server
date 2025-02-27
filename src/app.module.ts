@@ -37,7 +37,7 @@ import {UserController} from './controllers/UserController';
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
+                secret: process.env.JWT_SECRET || "mySuperSecret",
                 signOptions: {expiresIn: '7d'},
             }),
         }),

@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { Workbook } from 'exceljs';
-import { BaseResponseDto } from '../common/BseResponse.dto';
+import { BaseResponse } from '../common/BseResponse.dto';
 import { ResultUtilsDto } from '../common/ResultUtils.dto';
 import { GeneratorFacade } from '../core/GeneratorFacade';
 import { GenerateVO } from '../core/model/vo/GenerateVO';
@@ -20,7 +20,7 @@ export class SqlController {
    * @returns 生成结果
    * */
   @Post('generate/schema')
-  async generateBySchema(@Body() tableSchema: TableSchema): Promise<BaseResponseDto<GenerateVO>> {
+  async generateBySchema(@Body() tableSchema: TableSchema): Promise<BaseResponse<GenerateVO>> {
     const result = GeneratorFacade.generateAll(tableSchema);
     return ResultUtilsDto.success(result);
   }
@@ -31,7 +31,7 @@ export class SqlController {
    * @returns 表结构
    * */
   @Post('get/schema/auto')
-  async getSchemaByAuto(@Body() autoRequest: GenerateByAutoRequest): Promise<BaseResponseDto<Promise<TableSchema>>> {
+  async getSchemaByAuto(@Body() autoRequest: GenerateByAutoRequest): Promise<BaseResponse<Promise<TableSchema>>> {
     if (!autoRequest) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }
@@ -45,7 +45,7 @@ export class SqlController {
    * @returns 表结构
    * */
   @Post('get/schema/sql')
-  async getSchemaBySql(@Body() sqlRequest: GenerateBySqlRequest): Promise<BaseResponseDto<TableSchema>> {
+  async getSchemaBySql(@Body() sqlRequest: GenerateBySqlRequest): Promise<BaseResponse<TableSchema>> {
     if (!sqlRequest) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }

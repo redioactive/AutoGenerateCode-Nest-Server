@@ -1,29 +1,45 @@
-import { Injectable, ExecutionContext,CanActivate } from '@nestjs/common';
+import { Injectable, ExecutionContext,CanActivate,UnauthorizedException,NotFoundException } from '@nestjs/common';
+import {IS_PUBLIC_KEY} from "../annotations/JwtDecorator";
+import {AuthGuard} from "@nestjs/passport";
+import {Observable} from "rxjs";
 import {Reflector} from '@nestjs/core';
-import {JwtService} from '@nestjs/jwt';
-import {Request} from 'express';
+
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-    constructor(private jwtService:JwtService,private reflector:Reflector) {}
-    canActivate(context:ExecutionContext):boolean {
-        const request = context.switchToHttp().getRequest<Request>();
-        const authHeader = request.headers.authorization;
+export class JwtAuthGuard extends AuthGuard('jwt') {
+    constructor(private reflector:Reflector) { super(); }
 
-        //如果没有 Authorization 头部。则拒绝访问
-        if(!authHeader) return false;
+    /** 验证token */
+    canActivate(context:ExecutionContext):boolean | Promise<boolean> | Observable<boolean> {
+        //是否公共路由
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass()
+        ]);
+        if(isPublic) return true;
+        //校验token
+        return super.canActivate(context)
+    }
 
-        try {
-            //从 Authorization 头部中获取 Bearer token
-            const token = authHeader.split(' ')[1];
-            //使用JwtService 验证 token
-            const decoded = this.jwtService.verify(token);
-            //将解码后的用户信息房到请求的 user 属性中
-            request.user = decoded;
-            return true;
-        }catch(error) {
-            //如果token 验证失败。拒绝访问
-            return false;
+    /**
+     * @description: 验证完成后调用
+     * @param {*} error 执行passport过程中发生的任何错误
+     * @param {*} user 这是passport验证成功后返回的对象
+     * @param {*} info 如果验证失败 info通常是一个error对象 @Author: mulingyuer
+     *
+     * */
+    handleRequest(error: any, user: any, info: any) {
+        if (error) {
+            console.error('Error in passport:', error);  // 输出错误信息，帮助定位问题
+            throw new UnauthorizedException('token校验失败');
         }
+        if (info) {
+            console.error('Info in passport:', info);  // 输出 info，帮助定位失败原因
+            throw new UnauthorizedException('token校验失败');
+        }
+        if (!user) {
+            throw new NotFoundException('用户不存在');
+        }
+        return user;
     }
 }

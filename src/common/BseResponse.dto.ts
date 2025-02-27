@@ -1,39 +1,29 @@
 import {ApiProperty} from '@nestjs/swagger';
-import {IsInt,IsOptional,IsString} from 'class-validator';
+import {ErrorCode} from "./ErrorCode";
 
-/**
- * 通用返回类
- * @param <T>数据类型
- * */
-export class BaseResponseDto<T> {
-  @ApiProperty({
-    description : '响应代码',
-    example : 200
-  })
-  @IsInt()
+/** 通用返回类 */
+export class BaseResponse<T> {
+  @ApiProperty({description:'状态码'})
   code:number;
 
-  @ApiProperty({
-    description:'响应数据',
-    example: {}
-  })
-  @IsOptional()
-  data:T
+  @ApiProperty({description:'返回数据',required:false})
+  data?:T;
 
-  @ApiProperty({
-    description:'响应信息',
-    example:''
-  })
-  @IsString()
-  @IsOptional()
+  @ApiProperty({description:'消息描述',required:false})
   message?:string;
 
-  constructor(code: number, data: any = null, message: string = '') {
+  constructor(code:number,data?:T,message:string='') {
     this.code = code;
     this.data = data;
     this.message = message;
   }
-  static fromError(errorCode:{code:number,message:string}): BaseResponseDto<null> {
-    return new BaseResponseDto(errorCode.code, null, errorCode.message)
+
+
+  static success<T>(data?:T,message='请求成功'):BaseResponse<T> {
+    return new BaseResponse<T>(200,data,message);
+  }
+
+  static error<T>(errorCode:ErrorCode,data?:T):BaseResponse<T> {
+    return new BaseResponse<T>(errorCode.code,data);
   }
 }

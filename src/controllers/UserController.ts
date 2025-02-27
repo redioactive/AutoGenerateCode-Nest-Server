@@ -87,10 +87,16 @@ export class UserController {
         }
         const {user} = await this.userService.userLogin(userAccount, userPassword);
         // 生成 JWT Token
-        const accessToken = this.jwtService.sign({
-            userId: user.id,
-            userAccount: user.userAccount, // 确保这里有 userAccount
-        });
+        const accessToken = this.jwtService.sign(
+            {
+                userId: user.id,
+                userAccount: user.userAccount, // 确保这里有 userAccount
+            },
+            {
+                secret:process.env.JWT_SECRET || 'mySuperSecret',
+                expiresIn:'7d'
+            }
+        );
         console.log('User password from DB:',user?.userPassword);
         const userVO = new UserVO();
         Object.assign(userVO, user);

@@ -3,7 +3,6 @@ import { Request } from 'express';
 import { ReportService } from '../services/ReportService';
 import { DictService } from '../services/DictService';
 import { UserService } from '../services/UserService';
-import { AuthGuard } from '../annotations/AuthGuard';
 import { ReportAddRequest } from '../models/dto/ReportAddRequest';
 import { ReportUpdateRequest } from '../models/dto/ReportUpdateReuqest';
 import { ReportQueryRequest } from '../models/dto/ReportQueryRequest';
@@ -11,11 +10,12 @@ import { DeleteRequestDto } from '../common/DeleteRequest.dto';
 import { Report } from '../models/entity/Report';
 import { User } from '../models/entity/User';
 import { ReportStatusEnum } from '../models/enums/ReportStatusEnum';
-import { BaseResponseDto } from '../common/BseResponse.dto';
+import { BaseResponse } from '../common/BseResponse.dto';
 import { ErrorCode } from '../common/ErrorCode';
 import { ResultUtilsDto } from '../common/ResultUtils.dto';
 import { BusinessException } from '../exceptions/BusinessException';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {JwtAuthGuard} from "../config/JwtAuthGuards";
 
 @ApiTags('举报管理')
 @Controller('report')
@@ -35,7 +35,7 @@ export class ReportController {
    * */
   @Post('/add')
   @ApiOperation({ summary: '添加举报信息' })
-  async addReport(@Body() reportAddRequest: ReportAddRequest, @Req() request: Request): Promise<BaseResponseDto<number>> {
+  async addReport(@Body() reportAddRequest: ReportAddRequest, @Req() request: Request): Promise<BaseResponse<number>> {
     if (!reportAddRequest) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }
@@ -62,7 +62,7 @@ export class ReportController {
    * */
   @Post('/delete')
   @ApiOperation({ summary: '删除举报信息' })
-  async deleteReport(@Body() deleteRequest: DeleteRequestDto, @Req() request: Request): Promise<BaseResponseDto<boolean>> {
+  async deleteReport(@Body() deleteRequest: DeleteRequestDto, @Req() request: Request): Promise<BaseResponse<boolean>> {
     if (!deleteRequest || deleteRequest.id <= 0) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }
@@ -85,8 +85,8 @@ export class ReportController {
    * */
   @Post('/update')
   @ApiOperation({summary:'更新举报信息(仅管理员可用)'})
-  @UseGuards(AuthGuard)
-  async updateReport(@Body() reportUpdateRequest:ReportUpdateRequest):Promise<BaseResponseDto<boolean>> {
+  @UseGuards(JwtAuthGuard)
+  async updateReport(@Body() reportUpdateRequest:ReportUpdateRequest):Promise<BaseResponse<boolean>> {
     if(!reportUpdateRequest || reportUpdateRequest.id <= 0) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }
@@ -107,7 +107,7 @@ export class ReportController {
    * */
   @Get('/get')
   @ApiOperation({summary:'根据ID获取举报信息'})
-  async getReport(@Query('id') id:number):Promise<BaseResponseDto<Report | null>> {
+  async getReport(@Query('id') id:number):Promise<BaseResponse<Report | null>> {
     if(!id || id <= 0) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }
@@ -122,7 +122,7 @@ export class ReportController {
    * */
   @Get('/list/page')
   @ApiOperation({summary:'分页获取举报信息列表'})
-  async listReportByPage(@Query() query:ReportQueryRequest):Promise<BaseResponseDto<{items:Report[];total:number}>> {
+  async listReportByPage(@Query() query:ReportQueryRequest):Promise<BaseResponse<{items:Report[];total:number}>> {
     if(!query) {
       throw new BusinessException(ErrorCode.PARAMS_ERROR.code);
     }

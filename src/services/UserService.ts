@@ -148,7 +148,7 @@ export class UserService {
             userAccount: user.userAccount,
             role: user.role,
         };
-        const accessToken = this.jwtService.sign(payload);
+        const accessToken = this.jwtService.sign(payload,{secret:"mySuperSecret"});
 
         // 返回用户信息（注意排除敏感信息）和令牌
         const {userPassword: _, ...safeUser} = user;

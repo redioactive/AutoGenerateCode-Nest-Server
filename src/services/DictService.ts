@@ -5,11 +5,13 @@ import {
 } from '@nestjs/common';
 import { CreateDicDto, UpdateDicDto, QueryDictDto } from '../models/dto/DictDto';
 import { InjectRepository } from '@nestjs/typeorm';
-import {FindManyOptions, Repository} from 'typeorm';
+import {FindManyOptions, FindOptionsWhere, Like, Repository} from 'typeorm';
 import { Dict } from '../models/entity/Dict';
 import { User } from '../models/entity/User';
 import { generateVO } from '../models/vo/GenerateVO';
 import {DictQueryDto} from "../models/dto/DictQueryDto";
+import {Page} from "../types/page";
+
 
 @Injectable()
 export class DictService {
@@ -19,20 +21,20 @@ export class DictService {
   /**
    * 根据dictQueryDto 构造查询条件
    * */
-  public getQueryWrapper(dictQueryDto:DictQueryDto):any {
+  public getQueryWrapper(dictQueryDto:DictQueryDto):FindOptionsWhere<Dict> {
     //根据reviewStatus精准匹配
-    const where:any = {};
+    const where:FindOptionsWhere<Dict> = {};
     if(dictQueryDto.name){
       //使用like模糊搜索
-      where.name = {$like:`%${dictQueryDto.name}`}
+      where.name = Like(`%${dictQueryDto.name}%`);
     }
     if(dictQueryDto.content) {
-      where.content = {$like:`%${dictQueryDto.content}`}
+      where.content = Like(`%${dictQueryDto.content}%`);
     }
     if(dictQueryDto.reviewStatus !== undefined && dictQueryDto.reviewStatus !== null) {
       where.reviewStatus = dictQueryDto.reviewStatus;
     }
-    return {where}
+    return where
   }
   /**
    * 校验并处理
@@ -85,43 +87,30 @@ export class DictService {
   }
 
   /**获取词条列表(可分页、可筛选)*/
-  async list(options?:FindManyOptions<Dict>):Promise<Dict[]> {
-    return await this.find(options);
+  async list(dictQueryDto: DictQueryDto):Promise<Dict[]> {
+    const where = this.getQueryWrapper(dictQueryDto);
+    return await this.dictRepository.find({
+      where,
+      skip:dictQueryDto.current ? (dictQueryDto.current - 1) * dictQueryDto.pageSize : 0,
+      take:dictQueryDto.pageSize || 10
+    })
   }
 
   /**分页获取词条列表*/
-  async listDictByPage(queryDictDto:QueryDictDto) {
-    const {current = 1,pageSize = 10} = queryDictDto;
-    return await this.dictRepository.find({
-      take:pageSize,
-      skip:(current - 1) * pageSize,
-      order:{id:'DESC'}
-    })
+  async page(pagination:{current:number;pageSize:number;},dictQuery:DictQueryDto):Promise<Page<Dict>> {
+    const {current = 1,pageSize = 10} = pagination;
+    const queryWrapper =  this.getQueryWrapper(dictQuery);
+    const [records,total] = await Promise.all([
+        this.dictRepository.find({
+          where:queryWrapper,
+          skip:(current - 1) * pageSize,
+          take:pageSize
+        }),
+        this.dictRepository.count({where:queryWrapper})
+    ]);
+    return {records,total,current,pageSize}
   }
 
-  //获取当前用户可用的词条
-  async listMyDictByPage(queryDictDto:QueryDictDto,userId:number) {
-    const {current, pageSize} = queryDictDto;
-
-    const page = Math.max(Number(queryDictDto.current) || 1 , 1);
-    const limit = Math.max((Number(queryDictDto.pageSize) || 10 , 1),50)
-    //类型强制转换
-    console.log('executing query with', {
-      userId,
-      page,
-      limit,
-      skip:(page -  1) * limit
-    })
-    return await this.dictRepository.find({
-     where:{
-       userId,
-       isDelete:false
-     },
-     take:limit,
-      skip:(page - 1) * limit,
-      order:{id:'DESC'}
-    })
-  }
 
   /**生成SQL*/
   async generateCreateSql(id: number): Promise<generateVO> {
