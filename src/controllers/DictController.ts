@@ -17,7 +17,7 @@ import {Page} from "../types/page";
 import {User} from "../models/entity/User";
 import {Request} from "express";
 import {FindOptionsWhere} from "typeorm";
-import {JwtAuthGuard} from "../config/JwtAuthGuards";
+import {JwtAuthGuard} from "../annotations/JwtAuthGuards";
 
 @ApiTags('词条管理')
 @Controller('dict')

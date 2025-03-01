@@ -23,7 +23,7 @@ import {RolesGuard} from "../common/guards/RolesGuard";
 import {UserConstant} from '../constants/User_Constans';
 import {DeleteRequestDto} from '../common/DeleteRequest.dto';
 import {JwtService} from '@nestjs/jwt';
-import {JwtAuthGuard} from "../config/JwtAuthGuards";
+import {JwtAuthGuard} from "../annotations/JwtAuthGuards";
 import {Repository} from "typeorm";
 import {InjectRepository} from "@nestjs/typeorm";
 

@@ -1,7 +1,7 @@
 import {Module} from '@nestjs/common';
 import {ConfigModule} from '@nestjs/config';
 import {APP_GUARD, APP_INTERCEPTOR} from '@nestjs/core';
-import {AuthGuard} from './annotations/AuthGuard';
+import {JwtAuthGuard} from "./annotations/JwtAuthGuards";
 import {AppController} from './app.controller';
 import {DictController} from './controllers/DictController';
 import {SqlController} from './controllers/SqlController';
@@ -53,14 +53,14 @@ import {UserController} from './controllers/UserController';
         FieldInfoService,
         ReportService,
         JwtStrategy,
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        },
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: LogInterceptor,
-        },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: JwtAuthGuard,
+        // },
+        // {
+        //     provide: APP_INTERCEPTOR,
+        //     useClass: LogInterceptor,
+        // },
     ],
     exports: [MustacheConfigurationConfig, UserService, JwtModule], //导出以便其他模块使用
 })

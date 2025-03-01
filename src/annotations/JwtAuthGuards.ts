@@ -1,5 +1,5 @@
 import { Injectable, ExecutionContext,CanActivate,UnauthorizedException,NotFoundException } from '@nestjs/common';
-import {IS_PUBLIC_KEY} from "../annotations/JwtDecorator";
+import {IS_PUBLIC_KEY} from "./JwtDecorator";
 import {AuthGuard} from "@nestjs/passport";
 import {Observable} from "rxjs";
 import {Reflector} from '@nestjs/core';

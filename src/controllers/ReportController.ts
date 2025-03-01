@@ -15,7 +15,7 @@ import { ErrorCode } from '../common/ErrorCode';
 import { ResultUtilsDto } from '../common/ResultUtils.dto';
 import { BusinessException } from '../exceptions/BusinessException';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {JwtAuthGuard} from "../config/JwtAuthGuards";
+import {JwtAuthGuard} from "../annotations/JwtAuthGuards";
 
 @ApiTags('举报管理')
 @Controller('report')

@@ -15,7 +15,7 @@ import {ReviewStatusEnum} from '../models/enums/ReviewStatusEnum';
 import { SqlBuilder } from '../core/builder/SqlBuilder';
 import { Field } from '../core/schema/TableSchema';
 import { CommonConstants } from '../constants/Common_Constant';
-import {JwtAuthGuard} from "../config/JwtAuthGuards";
+import {JwtAuthGuard} from "../annotations/JwtAuthGuards";
 
 
 @ApiTags('字段管理')
