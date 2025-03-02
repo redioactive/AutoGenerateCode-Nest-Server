@@ -33,7 +33,7 @@ export class Dict {
    * 审核信息
    */
   @Column({ type: 'text', nullable: true })
-  reviewMessage?: string;
+  reviewMessage: string;
 
   /**
    * 词库值
@@ -63,4 +63,10 @@ export class Dict {
    */
   @Column({ type: 'boolean', default: false })
   isDelete: boolean;
+
+  /**
+   * 长度校验
+   * */
+  @Column({nullable:true})
+  description:string;
 }

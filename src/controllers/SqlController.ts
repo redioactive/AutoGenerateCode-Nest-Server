@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common';
+import {Controller, Post, Body, Res, HttpStatus, HttpException} from '@nestjs/common';
 import { Response } from 'express';
 import { Workbook } from 'exceljs';
 import { BaseResponse } from '../common/BseResponse.dto';
@@ -21,8 +21,18 @@ export class SqlController {
    * */
   @Post('generate/schema')
   async generateBySchema(@Body() tableSchema: TableSchema): Promise<BaseResponse<GenerateVO>> {
-    const result = GeneratorFacade.generateAll(tableSchema);
-    return ResultUtilsDto.success(result);
+    try {
+      const result = GeneratorFacade.generateAll(tableSchema);
+      return ResultUtilsDto.success(result);
+    }catch(error) {
+      console.error(`无法生成 schema:${error.message}`)
+      throw new HttpException({
+        message:'无法生成 schema',
+        error:error.message,
+        stack:error.stack,
+        tableSchemaL:JSON.stringify(tableSchema)
+      },HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   /**

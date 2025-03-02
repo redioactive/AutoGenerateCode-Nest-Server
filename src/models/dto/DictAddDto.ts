@@ -3,7 +3,12 @@ import {IsString,IsOptional} from 'class-validator';
 /**
  * 创建请求DTO
  * */
-export class DictAddRequest {
+export class DictAddDto {
+  /**
+   * 用户id
+   * */
+  @IsOptional()
+  userId:number;
   /**
    * 名称
    * */

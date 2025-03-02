@@ -1,5 +1,5 @@
 import {Injectable,InternalServerErrorException,Inject} from '@nestjs/common';
-import {ModuleRef} from '@nestjs/core';
+import {ModuleRef} from "@nestjs/core";
 import {ConfigurationService} from '../../services/ConfigurationService';
 import {TableSchema,Field} from '../schema/TableSchema';
 import {TypeScriptTypeGenerate} from '../model/dto/TypescriptTypeGenerate';

@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
+  ForbiddenException, BadRequestException,
 } from '@nestjs/common';
 import { CreateDicDto, UpdateDicDto, QueryDictDto } from '../models/dto/DictDto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -39,17 +39,32 @@ export class DictService {
   /**
    * 校验并处理
    * @param dict 词条对象
-   * @param add 是否为创建校验
+   * @param isNew 是否是新增
    * */
-  async validAddHandleDict(dict: Dict, add: boolean): Promise<void> {
+  async validAddHandleDict(dict: Partial<Dict>, isNew:boolean): Promise<void> {
+    // 1. 必须填写字段校验
     if (!dict.name || !dict.value) {
       throw new Error('名称和值不能为空');
     }
-    if (add) {
-      const exists = await this.dictRepository.findOne({ where: { name: dict.name } });
-      if (exists) {
-        throw new Error('该词条已存在');
+    // 2. 名称长度校验
+    if(dict.name.length < 2 || dict.name.length > 50) {
+      throw new BadRequestException('字典长度必须在2-50个字符之间')
+    }
+    // 3. 名称格式校验 （只能包含字母、数字、下划线和中文）
+    const nameRegex = /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
+    if(!nameRegex.test(dict.name)) {
+      throw new BadRequestException('字典名称只能包含字母、数字、下划线和中文')
+    }
+    // 4. 去重校验
+    if(isNew) {
+      const existing = await this.dictRepository.findOne({where:{name:dict.name}});
+      if(existing) {
+        throw new BadRequestException('字典名称已存在')
       }
+    }
+    // 5. 描述字段校验 （长度限制）
+    if(dict.description && dict.description.length > 255) {
+      throw new BadRequestException('字典描述不能超过 255个字符')
     }
   }
 
@@ -111,6 +126,18 @@ export class DictService {
     return {records,total,current,pageSize}
   }
 
+  /**
+   * 保存字典数据
+   * @param dict 字典实体
+   * @returns 保存后的字典
+   * */
+  async save(dict:Partial<Dict>):Promise<Dict> {
+    try {
+      return await this.dictRepository.save(dict);
+    }catch(error) {
+      throw new Error(`保存字典失败:${error.message}`);
+    }
+  }
 
   /**生成SQL*/
   async generateCreateSql(id: number): Promise<generateVO> {

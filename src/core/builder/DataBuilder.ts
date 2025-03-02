@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {TableSchema,Field} from '../schema/TableSchema';
-import { Faker, zh_CN } from '@faker-js/faker';
+import { Faker, en } from '@faker-js/faker';
 
 @Injectable()
 export class DataBuilder {
-  private static readonly faker = new Faker({locale:zh_CN});
+  private static readonly faker = new Faker({locale:en});
 
   /**
    * 根据 TableSchema 生成模拟数据
@@ -98,11 +98,11 @@ export class DataBuilder {
     const columns = tableSchema.fieldList.map(field => `\`${field.fieldName}\``).join(', ');
 
     const values = dataList
-      .map(row => {
-        const valueString = tableSchema.fieldList
-        return `(${valueString})`;
-      })
-      .join(',\n');
+        .map(row => {
+          const valueString = tableSchema.fieldList
+          return `(${valueString})`;
+        })
+        .join(',\n');
 
     return `INSERT INTO \`${tableName}\` (${columns}) VALUES\n${values};`;
   }
