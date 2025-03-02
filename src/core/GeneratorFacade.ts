@@ -14,7 +14,6 @@ export class GeneratorFacade {
     /**
      * 生成所有内容
      * @param tableSchema
-     * @param moduleRef
      * @returns GenerateVO
      * */
     public static generateAll(tableSchema: TableSchema): GenerateVO {
@@ -23,6 +22,8 @@ export class GeneratorFacade {
 
         const sqlBuilder = new SqlBuilder();
         const nestCodeBuilder = new NestCodeBuilder();
+        // @ts-ignore
+        const frontendCodeBuilder = new FrontendCodeBuilder();
 
         //生成键表SQL
         const createSql = tableSchema.fieldList
@@ -46,9 +47,7 @@ export class GeneratorFacade {
         const nestObjectCode = nestCodeBuilder.buildObjectCode(tableSchema, dataList);
 
         //生成Typescript 类型代码
-        // const typescriptTypeCode = FrontendCodeBuilder.buildTypeScriptCodeStatic(moduleRef, tableSchema);
-        // @ts-ignore
-        const typescriptTypeCode = FrontendCodeBuilder.buildTypeScriptCodeStatic( tableSchema);
+        const typescriptTypeCode = frontendCodeBuilder.buildTypeScriptTypeCode( tableSchema);
         //封装返回值
         return {
             tableSchema,

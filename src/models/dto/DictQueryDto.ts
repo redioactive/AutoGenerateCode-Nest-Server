@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsPositive } from 'class-validator';
+import {IsString, IsOptional, IsInt, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PageRequestDto } from '../../common/PageRequest.dto';
 
@@ -33,5 +33,4 @@ export class DictQueryDto extends PageRequestDto {
   @IsOptional()
   @IsInt()
   reviewStatus?: number;
-
 }

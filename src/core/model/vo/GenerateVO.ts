@@ -36,5 +36,5 @@ export class GenerateVO {
 
   @ApiProperty({ description: '生成的 TypeScript 类型代码' })
   @IsString()
-  typescriptTypeCode: Promise<string>;
+  typescriptTypeCode: string;
 }

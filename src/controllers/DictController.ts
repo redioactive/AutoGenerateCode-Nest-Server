@@ -102,9 +102,9 @@ export class DictController {
     @ApiOperation({summary: '分页获取词条列表'})
     async listDictByPage(@Query() dictQueryPage: DictQueryDto): Promise<BaseResponse<Page<Dict>>> {
         const {current, pageSize} = dictQueryPage;
-        if (pageSize > 20) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR.code)
-        }
+        // if (pageSize > 20) {
+        //     throw new BusinessException(ErrorCode.PARAMS_ERROR.code)
+        // }
         const dictPage = await this.dictService.page({current, pageSize}, dictQueryPage)
         return ResultUtilsDto.success(dictPage)
     }
